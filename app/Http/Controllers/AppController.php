@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\AppRequest;
+use App\Services\TransactionService;
+use App\Services\TypeService;
+use Carbon\Carbon;
 
 class AppController extends Controller
 {
@@ -11,74 +14,48 @@ class AppController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(AppRequest $request)
     {
-        return view('app');
-    }
+        $types = TypeService::get();
+        $data = $request->only([
+            'service_type',
+            'start_date',
+            'end_date',
+            'page_number',
+            'page_size',
+        ]);
+        if (!isset($data['service_type'])) {
+            $type = $types->first();
+            $data['service_type'] = $type->code;
+        }
+        if (!isset($data['start_date'])) {
+            $data['start_date'] = Carbon::now()->format('Y-m-d');
+        }
+        if (!isset($data['end_date'])) {
+            $data['end_date'] = Carbon::now()->format('Y-m-d');
+        }
+        if (!isset($data['page_number'])) {
+            $data['page_number'] = 1;
+        }
+        if (!isset($data['page_size'])) {
+            $data['page_size'] = 10;
+        }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
+        $body = [
+            'getTransactionOrigin' => 'CHANNEL',
+            'serviceType' => $data['service_type'],
+            'startDate' => str_replace('-', '', $data['start_date']),
+            'endDate' => str_replace('-', '', $data['end_date']),
+            'pageNumber' => $data['page_number'],
+            'pageSize' => $data['page_size'],
+        ];
+        $transactions = TransactionService::get($body);
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
+        $view_data = [
+            'types' => $types,
+            'transactions' => $transactions,
+            'form' => $data,
+        ];
+        return view('app', $view_data);
     }
 }

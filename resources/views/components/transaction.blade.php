@@ -1,24 +1,30 @@
 <div class="card">
 	<div class="card-body">
-		<h5 class="card-title">Card title</h5>
-		<h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
+		<h5 class="card-title">{{$transaction->name}}</h5>
+		<h6 class="card-subtitle mb-2 text-muted">{{$transaction->transaction_date}}</h6>
 		<p class="card-text">
 			<strong>Tipo de servicio:</strong> 
 			<br>
-			transaction.serviceType}}
+			{{$transaction->service_type}}
 			<br>
 			<strong>Detalle:</strong> 
 			<br>
-			transaction.nameDetail}}
+			{{$transaction->name_detail}}
 			<br>
 			<strong>Número de referencia:</strong> 
 			<br>
-			transaction.referenceNumber}}
+			{{$transaction->reference_number}}
 			<br>
 			<strong>Monto de transferencia:</strong> 
 			<br>
-			transaction.transfer_value | currency}}
+			${{number_format($transaction->transfer_value, 3, ',', '.')}}
 		</p>
-		<a href="#" class="btn btn-info">Go somewhere</a>
+		@if ($transaction->transfer_status == 'EXITOSA')
+		<a href="#" class="btn btn-success">EXITOSA</a>
+		@elseif ($transaction->transfer_status == 'RECHAZADA')
+		<a href="#" class="btn btn-danger">RECHAZADA</a>
+		@else
+		<a href="#" class="btn btn-info">ESTATUS DESCONOCIDO</a>
+		@endif
 	</div>
 </div>
